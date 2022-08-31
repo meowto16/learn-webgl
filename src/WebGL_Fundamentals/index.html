@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>WebGL Fundamentals</title>
+    <link rel="stylesheet" href="index.css"></link>
+    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js" defer></script>
+    <script id="vertex-shader-2d" type="x-shader/x-vertex" defer>
+        attribute vec4 a_position;
+
+        void main() {
+            gl_Position = a_position;
+        }
+    </script>
+    <script id="fragment-shader-2d" type="x-shader/x-fragment" defer>
+        precision mediump float;
+
+        void main() {
+            gl_FragColor = vec4(1, 0, 0.5, 1);
+        }
+    </script>
+    <script src="index.js" defer></script>
+</head>
+<body>
+    <canvas width="640" height="640" id="canvas">Your browser doesn't support canvas.</canvas>
+</body>
+</html>
