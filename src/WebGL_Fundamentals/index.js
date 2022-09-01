@@ -1,3 +1,5 @@
+'use strict'
+
 const canvas = document.getElementById('canvas');
 const gl = canvas.getContext('webgl');
 
@@ -5,126 +7,95 @@ if (!gl) {
   throw new Error('WebGL is not supported')
 }
 
-resizeCanvasToDisplaySize(canvas);
+// Compile shaders and link into program.
+// The program is a vertex and fragment shader paired together.
+// A vertex shader job is to compute position. Based on positions WebGL can rasterize points, lines and triangles.
+// A fragment shader job is to compute color for each pixel of the primitive currently being drawn.
+const program = webglUtils.createProgramFromScripts(gl, ['vertex-shader-2d', 'fragment-shader-2d'])
 
-const vertexShader = createVertexShader('vertex-shader-2d');
-const fragmentShader = createFragmentShader('fragment-shader-2d');
-const program = createProgram(gl, vertexShader, fragmentShader);
+/**
+ * Look up where the vertex data needs to go.
+ * Attribute - used to specify how to pull data out of buffers
+ * and provide them to vertex shader.
+ *
+ * - Which buffer to pull the positions out of
+ * - What type of data it should pull out
+ * - What offset in the buffer the positions start
+ * - How many bytes to get from one position to the next
+ */
+const positionAttributeLocation = gl.getAttribLocation(program, 'a_position')
+
+/**
+ * Look up uniform locations.
+ * Uniforms - global variables
+ * You are setting it before your program execution.
+ */
+const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution')
+
+/**
+ * Create a buffer to put three 2d clip space points in
+ */
+const positionBuffer = gl.createBuffer()
+
+/**
+ * Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+ * gl.ARRAY_BUFFER - Buffer containing vertex attributes, such as vertex coordinates,
+ * texture coordinate data, or vertex color data
+ */
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 
 const positions = [
-  0, 0,
-  0, 0.5,
-  0.7, 0,
+  10, 20,
+  80, 20,
+  10, 30,
+  10, 30,
+  80, 20,
+  80, 30,
 ]
 
-const positionAttributeLocation = gl.getAttribLocation(program, 'a_position')
-const positionBuffer = gl.createBuffer()
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+/**
+ * Float32Array - typed array, represents an array of 32-bit floating point numbers
+ * gl.STATIC_DRAW - The contents are intended to be specified once by the application,
+ * and used many times as the source for WebGL drawing and image specification commands.
+ */
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
 
-gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
-gl.clearColor(0, 0, 0, 0)
-gl.clear(gl.COLOR_BUFFER_BIT)
+webglUtils.resizeCanvasToDisplaySize(gl.canvas);
 
-gl.useProgram(program)
-gl.enableVertexAttribArray(positionAttributeLocation)
+// Tell WebGL how to convert from clip space to pixels
+gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
+// Clear the canvas
+gl.clearColor(0, 0, 0, 0);
+gl.clear(gl.COLOR_BUFFER_BIT);
 
+// Tell it to use our program (pair of shaders)
+gl.useProgram(program);
 
+// Turn on the attribute
+gl.enableVertexAttribArray(positionAttributeLocation);
 
+// Bind the position buffer.
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
+// Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+(() => {
+  const size = 2;          // 2 components per iteration
+  const type = gl.FLOAT;   // the data is 32bit floats
+  const normalize = false; // don't normalize the data
+  const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+  const offset = 0;        // start at the beginning of the buffer
+  gl.vertexAttribPointer(
+    positionAttributeLocation, size, type, normalize, stride, offset);
+})();
 
+// set the resolution
+gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
-
-
-
-
-
-
-
-
-
-// == FUNCTIONS == //
-/**
- *
- * Creates shader from script element by id
- * @param gl {WebGLRenderingContext}
- * @param type {GLenum}
- * @param sourceId {string}
- * @returns {WebGLShader}
- */
-function createShader(gl, type, sourceId) {
-  const source = document.getElementById(sourceId).text;
-  const shader = gl.createShader(type);
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-  if (success) {
-    return shader;
-  }
-
-  console.log(gl.getShaderInfoLog(shader));
-  gl.deleteShader(shader);
-}
-
-/**
- * Creates vertex shader from script element by id
- * @param sourceId {string}
- * @returns {WebGLShader}
- */
-function createVertexShader(sourceId) {
- return createShader.call(this, gl, gl.VERTEX_SHADER, sourceId);
-}
-
-/**
- * Creates fragment shader from script element by id
- * @param sourceId {string}
- * @returns {WebGLShader}
- */
-function createFragmentShader(sourceId) {
-  return createShader.call(this, gl, gl.FRAGMENT_SHADER, sourceId);
-}
-
-/**
- * Links 2 shaders to program.
- * @param gl {WebGLRenderingContext}
- * @param vertexShader {WebGLShader}
- * @param fragmentShader {WebGLShader}
- */
-function createProgram (gl, vertexShader, fragmentShader) {
-  const program = gl.createProgram()
-  gl.attachShader(program, vertexShader)
-  gl.attachShader(program, fragmentShader)
-  gl.linkProgram(program)
-
-  const success = gl.getProgramParameter(program, gl.LINK_STATUS)
-  if (success) {
-    return program;
-  }
-
-  console.log(gl.getProgramInfoLog(program));
-  gl.deleteProgram(program);
-}
-
-/**
- * Resizes canvas to display size
- * @param canvas {HTMLCanvasElement}
- * @returns {boolean}
- */
-function resizeCanvasToDisplaySize(canvas) {
-  // Lookup the size the browser is displaying the canvas in CSS pixels.
-  const displayWidth  = canvas.clientWidth;
-  const displayHeight = canvas.clientHeight;
-
-  // Check if the canvas is not the same size.
-  const needResize = canvas.width  !== displayWidth ||
-    canvas.height !== displayHeight;
-
-  if (needResize) {
-    // Make the canvas the same size
-    canvas.width  = displayWidth;
-    canvas.height = displayHeight;
-  }
-
-  return needResize;
-}
+// draw
+(() => {
+  const primitiveType = gl.TRIANGLES;
+  const offset = 0;
+  const count = 6;
+  gl.drawArrays(primitiveType, offset, count);
+})();
