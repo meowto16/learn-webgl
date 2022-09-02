@@ -79,10 +79,12 @@ gl.clearDepth(1.0);
 
 let time_prev = 0
 const animate = (time) => {
-  const dAngle = 0.005 * (time - time_prev)
+  const diff = (time - time_prev)
 
   // To rotate point or a vector, we have to
-  LIBS.rotateY(MOVE_MATRIX, dAngle)
+  LIBS.rotateZ(MOVE_MATRIX, 0.001 * diff)
+  LIBS.rotateX(MOVE_MATRIX, 0.003 * diff)
+  LIBS.rotateY(MOVE_MATRIX, 0.002 * diff)
   time_prev = time
 
   gl.viewport(0, 0, canvas.width, canvas.height)
