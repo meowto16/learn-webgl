@@ -38,13 +38,25 @@ const triangle_vertex = [
   // 2 index
   1, 1, 0, // position. top right of the viewport (x, y, z)
   1, 0, 0, // color. red
+
+  // 3 index
+  -1, 1, 0, // position. top left of the viewport (x, y)
+  0, 1, 0, // color red + green
+
+  // 4 index
+  1, 1, 0, // position. top right of the viewport (x, y)
+  1, 0, 0, // color. red
+
+  // 5 index
+  -1, -1, 0, // position. first corner, bottom left (x,y)
+  0, 0, 1, // color blue
 ]
 const TRIANGLE_VERTEX = gl.createBuffer()
 gl.bindBuffer(gl.ARRAY_BUFFER, TRIANGLE_VERTEX)
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangle_vertex), gl.STATIC_DRAW)
 
 // FACES
-const triangle_faces = [0, 1, 2]
+const triangle_faces = [0, 1, 2, 3, 4, 5]
 const TRIANGLE_FACES = gl.createBuffer()
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TRIANGLE_FACES)
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(triangle_faces), gl.STATIC_DRAW)
@@ -82,8 +94,8 @@ const animate = (time) => {
   const diff = (time - time_prev)
 
   // To rotate point or a vector, we have to
-  LIBS.rotateZ(MOVE_MATRIX, 0.001 * diff)
-  LIBS.rotateX(MOVE_MATRIX, 0.003 * diff)
+  // LIBS.rotateZ(MOVE_MATRIX, 0.001 * diff)
+  // LIBS.rotateX(MOVE_MATRIX, 0.00 * diff)
   LIBS.rotateY(MOVE_MATRIX, 0.002 * diff)
   time_prev = time
 
@@ -122,7 +134,7 @@ const animate = (time) => {
   gl.vertexAttribPointer(_color, 3, gl.FLOAT, false, 4 * (3 + 3), 3 * 4)
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TRIANGLE_FACES)
-  gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0)
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
   gl.flush()
 
   requestAnimationFrame(animate)
