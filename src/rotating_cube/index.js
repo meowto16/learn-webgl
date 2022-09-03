@@ -26,77 +26,65 @@ gl.useProgram(program)
 
 // == CUBE == //
 // POINTS
-const cube_vertex = [
-  // 0 index (done). Back side
-  -1, -1, -1,   0, 1, 1, // left - down - back corner | color: cy
-   1, -1, -1,   0, 1, 1, // right - down - back corner | color: cyan// an
-   1,  1, -1,   0, 1, 1, // right - up - back corner | color: cyan
-  -1,  1, -1,   0, 1, 1, // left - up - back corner | color: cyan
+const cone_vertex = [
+  // Bottom side (square, 2 triangles).
+  -1, -1,  1,   1, 1, 1, // left - down - front corner | color: white
+   1, -1,  1,   1, 1, 1, // right - down - front corner | color: white
+   1, -1, -1,   1, 1, 1, // right - down - back corner | color: white
+  -1, -1, -1,   1, 1, 1, // left - down - back corner | color: white
 
-  // 1 index (done). Front side
+  // Front side
+   0,  0, 0,    1, 0, 0, // Top-middle | color: red
   -1, -1, 1,    1, 0, 0, // left - down - front corner | color: red
-  -1,  1, 1,    1, 0, 0, // left - up - front corner | color: red
-   1,  1, 1,    1, 0, 0, // right - up - front corner | color: red
    1, -1, 1,    1, 0, 0, // right - down - front corner | color: red
 
-  // 2 index (done). Left side
-  -1,  1, 1,    1, 1, 0, // left - up - front corner | color: yellow
-  -1, -1, 1,    1, 1, 0, // left - down - front corner | color: yellow
+  // Back side
+   0,  0, 0,    1, 1, 0, // Top-middle | color: yellow
   -1, -1, -1,   1, 1, 0, // left - down - back corner | color: yellow
-  -1,  1, -1,   1, 1, 0, // left - up - back corner | color: yellow
+   1, -1, -1,   1, 1, 0, // right - down - back corner | color: yellow
 
-  // 3 index (done). Right side
-   1,  1, 1,    0, 1, 0, // right - up - front corner | color: green
-   1, -1, 1,    0, 1, 0, // right - down - front corner | color: green
-   1, -1, -1,   0, 1, 0, // right - down - back corner | color: green
-   1,  1, -1,   0, 1, 0, // right - up - back corner | color: green
+  // Left side
+  0,  0,   0,   0, 1, 0, // Top-middle | color: green
+  -1, -1,  1,   0, 1, 0, // left - down - front corner | color: green
+  -1, -1, -1,   0, 1, 0, // left - down - back corner | color: green
 
-  // 4 index (working). Bottom side
-  -1, -1,  1,   0, 0, 1, // left - down - front corner | color: blue
-   1, -1,  1,   0, 0, 1, // right - down - front corner | color: blue
-   1, -1, -1,   0, 0, 1, // right - down - back corner | color: blue
-  -1, -1, -1,   0, 0, 1, // left - down - back corner | color: blue
-
-  // 5 index (done). Top side
-  -1,  1,  1,   1, 0, 1, // left - up - front corner | color: purple
-   1,  1,  1,   1, 0, 1, // right - up - front corner | color: purple
-   1,  1, -1,   1, 0, 1, // right - up - back corner | color: purple
-  -1,  1, -1,   1, 0, 1, // left - up - back corner | color: purple
+  // Right side
+  0,  0,  0,    1, 0, 1, // Top-middle | color: purple
+  1, -1,  1,    1, 0, 1, // right - down - front corner | color: purple
+  1, -1, -1,    1, 0, 1, // right - down - back corner | color: purple
 ]
 const CUBE_VERTEX = gl.createBuffer()
 gl.bindBuffer(gl.ARRAY_BUFFER, CUBE_VERTEX)
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube_vertex), gl.STATIC_DRAW)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cone_vertex), gl.STATIC_DRAW)
 
 // FACES
-const cube_faces = [
+const cone_faces = [
+  // Bottom side (square. 2 triangles)
   0, 1, 2,
   0, 2, 3,
 
+  // Front triangle
   4, 5, 6,
-  4, 6, 7,
 
-  8, 9, 10,
-  8, 10, 11,
+  // Back triangle
+  7, 8, 9,
 
-  12, 13, 14,
-  12, 14, 15,
+  // Left triangle
+  10, 11, 12,
 
-  16, 17, 18,
-  16, 18, 19,
-
-  20, 21, 22,
-  20, 22, 23
+  // Right triangle
+  13, 14, 15
 ]
-const CUBE_FACES = gl.createBuffer()
-gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, CUBE_FACES)
-gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cube_faces), gl.STATIC_DRAW)
+const CONE_FACES = gl.createBuffer()
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, CONE_FACES)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cone_faces), gl.STATIC_DRAW)
 
 // == MATRIX == //
 // We modelize 4x4 matrix by a 1 dimension JS array with 16 floats.
 // Operations are faster than with 2 dimensional arrays, and we can send it directly to WebGL
 const PROJECTION_MATRIX = LIBS.get_projection(40, canvas.width / canvas.height, 1, 100)
 
-// It is a cube movement matrix
+// It is a cone movement matrix
 const MOVE_MATRIX = LIBS.get_I4()
 const VIEW_MATRIX = LIBS.get_I4()
 
@@ -125,8 +113,9 @@ const animate = (time) => {
 
   // To rotate point or a vector, we have to
   // LIBS.rotateZ(MOVE_MATRIX, 0.001 * diff)
-  LIBS.rotateX(MOVE_MATRIX, 0.002 * diff)
-  LIBS.rotateY(MOVE_MATRIX, 0.003 * diff)
+  // LIBS.rotateX(MOVE_MATRIX, 0.004 * diff)
+  LIBS.rotateY(MOVE_MATRIX, 0.002 * diff)
+  // LIBS.translateX(MOVE_MATRIX, 0.0008 * diff)
   // LIBS.rotateX(MOVE_MATRIX, 0.002 * diff)
   time_prev = time
 
@@ -164,8 +153,8 @@ const animate = (time) => {
   gl.vertexAttribPointer(_position, 3, gl.FLOAT, false, 4 * (3 + 3), 0)
   gl.vertexAttribPointer(_color, 3, gl.FLOAT, false, 4 * (3 + 3), 3 * 4)
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, CUBE_FACES)
-  gl.drawElements(gl.TRIANGLES, 6 * 2 * 3, gl.UNSIGNED_SHORT, 0)
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, CONE_FACES)
+  gl.drawElements(gl.TRIANGLES, 6 + (3 * 4), gl.UNSIGNED_SHORT, 0)
   gl.flush()
 
   requestAnimationFrame(animate)
