@@ -29,7 +29,9 @@
         varying vec3 vColor;
 
         void main() {
-            gl_FragColor = vec4(vColor, 1.);
+            float gray = (vColor[0] + vColor[1] + vColor[2]) / 3.0;
+
+            gl_FragColor = vec4(gray, gray, gray, 1.);
         }
     </script>
     <script src="libs.js" defer></script>
