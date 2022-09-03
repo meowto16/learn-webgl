@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Mouse events</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="webgl-utils.js" defer></script>
+    <script id="vertex-shader-2d" type="x-shader/x-vertex" defer>
+        attribute vec3 position; // the positions of the point
+        attribute vec3 color; // the color of the point
+
+        varying vec3 vColor;
+
+        uniform mat4 Pmatrix;
+        uniform mat4 Mmatrix;
+        uniform mat4 Vmatrix;
+
+        void main() {
+            gl_Position = Pmatrix * Vmatrix * Mmatrix * vec4(position, 1.);
+            vColor = color;
+        }
+    </script>
+    <script id="fragment-shader-2d" type="x-shader/x-fragment" defer>
+        precision mediump float;
+
+        varying vec3 vColor;
+
+        void main() {
+            gl_FragColor = vec4(vColor, 1.);
+        }
+    </script>
+    <script src="libs.js" defer></script>
+    <script src="index.js" defer></script>
+</head>
+<body>
+<!--    <canvas width="1440" height="695" id="canvas"></canvas>-->
+    <canvas width="640" height="640" id="canvas"></canvas>
+</body>
+</html>
