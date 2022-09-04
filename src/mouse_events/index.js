@@ -12,51 +12,9 @@ canvas.height = window.innerHeight
 
 // == CAPTURE MOUSE EVENTS == //
 const AMORTIZATION = 0.95
-const DRAG_SENSIVITY = 2
 
-let THETA = 0
-let PHI = 0
-
-let isDragging = false
-let dX = 0, dY = 0
-let xPrev, yPrev
-
-/**
- * @param event {MouseEvent}
- */
-const handleMouseDown = (event) => {
-  isDragging = true
-
-  xPrev = event.pageX
-  yPrev = event.pageY
-}
-
-const handleMouseUp = () => {
-  isDragging = false
-}
-
-/**
- * @param event {MouseEvent}
- */
-const handleMouseMove = (event) => {
-  if (!isDragging) return
-
-  event.preventDefault()
-
-  dX = (event.pageX - xPrev) * DRAG_SENSIVITY * Math.PI / canvas.width
-  dY = (event.pageY - yPrev) * DRAG_SENSIVITY * Math.PI / canvas.height
-
-  THETA += dX
-  PHI += dY
-
-  xPrev = event.pageX
-  yPrev = event.pageY
-}
-
-canvas.addEventListener('mousedown', handleMouseDown)
-canvas.addEventListener('mouseup', handleMouseUp)
-canvas.addEventListener('mouseout', handleMouseUp)
-canvas.addEventListener('mousemove', handleMouseMove)
+const rotating = captureMouseEvent('left-click', 2, 0.95)
+const translating = captureMouseEvent('right-click', 2, 0.95)
 
 // == WEBGL START == //
 const program = webglUtils.createProgramFromScripts(gl, ['vertex-shader-2d', 'fragment-shader-2d'])
@@ -161,23 +119,22 @@ gl.depthFunc(gl.LEQUAL);
 
 gl.clearDepth(1.0);
 
-
-let time_prev = 0
-
-const animate = (time) => {
-  if (!isDragging) {
-    dX *= AMORTIZATION
-    dY *= AMORTIZATION
-
-    THETA += dX
-    PHI += dY
-  }
-
-  // To rotate point or a vector, we have to
+const animate = () => {
   LIBS.set_I4(MOVE_MATRIX)
-  LIBS.rotateY(MOVE_MATRIX, THETA)
-  LIBS.rotateX(MOVE_MATRIX, PHI)
-  time_prev = time
+
+  rotating.animateAmortization()
+  translating.animateAmortization()
+
+  LIBS.translateX(MOVE_MATRIX, translating.THETA)
+  LIBS.translateY(MOVE_MATRIX, -translating.PHI)
+
+  LIBS.rotateX(MOVE_MATRIX, rotating.THETA)
+  LIBS.rotateY(MOVE_MATRIX, rotating.PHI)
+
+  document.querySelector('#translating-phi .value').innerHTML = translating.PHI
+  document.querySelector('#translating-theta .value').innerHTML = translating.THETA
+  document.querySelector('#rotating-phi .value').innerHTML = rotating.PHI
+  document.querySelector('#rotating-theta .value').innerHTML = rotating.THETA
 
   gl.viewport(0, 0, canvas.width, canvas.height)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -220,4 +177,90 @@ const animate = (time) => {
   requestAnimationFrame(animate)
 }
 
-animate(0)
+animate()
+
+/**
+ * @param type {'left-click' | 'right-click'}
+ * @param dragSensitivity {number}
+ * @param amortization {number}
+ */
+function captureMouseEvent(type, dragSensitivity = 2, amortization = 0.95) {
+  const EVENT_BUTTON = type === 'left-click' ? 0 : 2
+
+  let THETA = 0
+  let PHI = 0
+
+  let isDragging = false
+
+  let dX = 0, dY = 0
+  let xPrev, yPrev
+
+  /**
+   * @param event {MouseEvent}
+   */
+  const handleMouseDown = (event) => {
+    if (event.button === EVENT_BUTTON) {
+      isDragging = true
+
+      xPrev = event.pageX
+      yPrev = event.pageY
+    }
+  }
+
+  const handleMouseUp = () => {
+    isDragging = false
+  }
+
+  /**
+   * @param event {MouseEvent}
+   */
+  const handleMouseMove = (event) => {
+    if (!isDragging) return
+
+    event.preventDefault()
+
+    dX = (event.pageX - xPrev) * dragSensitivity * Math.PI / canvas.width
+    dY = (event.pageY - yPrev) * dragSensitivity * Math.PI / canvas.height
+
+    THETA += dX
+    PHI += dY
+
+    xPrev = event.pageX
+    yPrev = event.pageY
+  }
+
+  canvas.addEventListener('mousedown', handleMouseDown)
+  canvas.addEventListener('mouseup', handleMouseUp)
+  canvas.addEventListener('mouseout', handleMouseUp)
+  canvas.addEventListener('mousemove', handleMouseMove)
+
+  if (type === 'right-click') {
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault())
+  }
+
+  return {
+    get dX() {
+     return dX
+    },
+    get dY() {
+     return dY
+    },
+    get THETA() {
+     return THETA
+    },
+    get PHI() {
+     return PHI
+    },
+    get isDragging() {
+      return isDragging
+    },
+    animateAmortization() {
+      if (!isDragging) {
+        dX *= amortization
+        dY *= amortization
+        THETA += dX
+        PHI += dY
+      }
+    }
+  }
+}

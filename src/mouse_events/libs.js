@@ -43,22 +43,6 @@ const LIBS = {
     const c = Math.cos(angle)
     const s = Math.sin(angle)
 
-    const mv1 = m[1]
-    const mv5 = m[5]
-    const mv9 = m[9]
-
-    m[1] = m[1] *c -m[2] * s
-    m[5] = m[5] *c -m[6] * s
-    m[9] = m[9] *c -m[10] * s
-
-    m[2] = m[2] * c + mv1 * s
-    m[6] = m[6] * c + mv5 * s
-    m[10]= m [10] * c + mv9 * s
-  },
-  rotateY: function(m, angle) {
-    const c = Math.cos(angle)
-    const s = Math.sin(angle)
-
     const mv0 = m[0]
     const mv4 = m[4]
     const mv8 = m[8]
@@ -70,6 +54,22 @@ const LIBS = {
     m[2] = c * m[2] - s * mv0
     m[6] = c * m[6] - s * mv4
     m[10] = c * m[10] - s * mv8
+  },
+  rotateY: function(m, angle) {
+    const c = Math.cos(angle)
+    const s = Math.sin(angle)
+
+    const mv1 = m[1]
+    const mv5 = m[5]
+    const mv9 = m[9]
+
+    m[1] = m[1] *c -m[2] * s
+    m[5] = m[5] *c -m[6] * s
+    m[9] = m[9] *c -m[10] * s
+
+    m[2] = m[2] * c + mv1 * s
+    m[6] = m[6] * c + mv5 * s
+    m[10]= m [10] * c + mv9 * s
   },
   rotateZ: function(m, angle) {
     const c = Math.cos(angle)
@@ -86,6 +86,12 @@ const LIBS = {
     m[1] = c * m[1] + s * mv0
     m[5] = c * m[5] + s * mv4
     m[9] = c * m[9] + s * mv8
+  },
+  translateX: function(m, t) {
+    m[12] += t
+  },
+  translateY: function(m, t) {
+    m[13] += t
   },
   translateZ: function(m, t) {
     m[14] += t
