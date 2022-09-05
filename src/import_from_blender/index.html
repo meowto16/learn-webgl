@@ -31,7 +31,7 @@
         uniform sampler2D sampler;
 
         void main() {
-            gl_FragColor = texture2D(sampler, vUV);
+            gl_FragColor = texture2D(sampler, vUV) * vec4(1.5, 1.5, 1.5, 1.0);
         }
     </script>
     <script src="libs.js" defer></script>
