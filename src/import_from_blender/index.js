@@ -14,7 +14,8 @@ async function main() {
 
 // == CAPTURE MOUSE EVENTS == //
   const rotating = captureMouseEvent('left-click', 2, 0.95)
-  const translating = captureMouseEvent('right-click', 2, 0.95)
+  const translating = captureMouseEvent('right-click', 4, 0.95)
+  const zoom = captureMouseEvent('wheel', 2, 0.95)
 
 // == WEBGL START == //
   const program = webglUtils.createProgramFromScripts(gl, ['vertex-shader-2d', 'fragment-shader-2d'])
@@ -77,6 +78,8 @@ async function main() {
     LIBS.rotateX(MOVE_MATRIX, rotating.THETA)
     LIBS.rotateY(MOVE_MATRIX, rotating.PHI)
 
+    LIBS.translateZ(MOVE_MATRIX, zoom.PHI)
+
     document.querySelector('#translating-phi .value').innerHTML = translating.PHI
     document.querySelector('#translating-theta .value').innerHTML = translating.THETA
     document.querySelector('#rotating-phi .value').innerHTML = rotating.PHI
@@ -110,11 +113,11 @@ async function main() {
 void main()
 
 /**
- * @param type {'left-click' | 'right-click'}
- * @param dragSensitivity {number}
+ * @param type {'left-click' | 'right-click' | 'wheel'}
+ * @param sensitivity {number}
  * @param amortization {number}
  */
-function captureMouseEvent(type, dragSensitivity = 2, amortization = 0.95) {
+function captureMouseEvent(type, sensitivity = 2, amortization = 0.95) {
   const EVENT_BUTTON = type === 'left-click' ? 0 : 2
 
   let THETA = 0
@@ -149,8 +152,8 @@ function captureMouseEvent(type, dragSensitivity = 2, amortization = 0.95) {
 
     event.preventDefault()
 
-    dX = (event.pageX - xPrev) * dragSensitivity * Math.PI / canvas.width
-    dY = (event.pageY - yPrev) * dragSensitivity * Math.PI / canvas.height
+    dX = (event.pageX - xPrev) * sensitivity * Math.PI / canvas.width
+    dY = (event.pageY - yPrev) * sensitivity * Math.PI / canvas.height
 
     THETA += dX
     PHI += dY
@@ -159,10 +162,25 @@ function captureMouseEvent(type, dragSensitivity = 2, amortization = 0.95) {
     yPrev = event.pageY
   }
 
-  canvas.addEventListener('mousedown', handleMouseDown)
-  canvas.addEventListener('mouseup', handleMouseUp)
-  canvas.addEventListener('mouseout', handleMouseUp)
-  canvas.addEventListener('mousemove', handleMouseMove)
+  /**
+   *
+   * @param event {WheelEvent}
+   */
+  const handleMouseWheel = (event) => {
+    event.preventDefault()
+
+    THETA = PHI += -(event.deltaY / 100 * sensitivity)
+  }
+
+  if (type !== 'wheel') {
+    canvas.addEventListener('mousedown', handleMouseDown)
+    canvas.addEventListener('mouseup', handleMouseUp)
+    canvas.addEventListener('mouseout', handleMouseUp)
+    canvas.addEventListener('mousemove', handleMouseMove)
+  } else {
+    canvas.addEventListener('wheel', handleMouseWheel)
+  }
+
 
   if (type === 'right-click') {
     canvas.addEventListener('contextmenu', (e) => e.preventDefault())
