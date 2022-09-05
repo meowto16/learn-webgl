@@ -96,7 +96,7 @@ const PROJECTION_MATRIX = LIBS.get_projection(40, canvas.width / canvas.height, 
 const MOVE_MATRIX = LIBS.get_I4()
 const VIEW_MATRIX = LIBS.get_I4()
 
-LIBS.translateZ(VIEW_MATRIX, -8)
+LIBS.translateZ(VIEW_MATRIX, -3)
 
 let cube_texture = loadTexture('resources/Marble13_COL_1K.jpg')
 
@@ -261,14 +261,19 @@ function loadTexture(src) {
     .then(({ image }) => {
       gl.bindTexture(gl.TEXTURE_2D, texture)
 
+      // Flip image upside down
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 
+      // Loads a texture to GPU
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
 
+      // Defines texture parameters (TEXTURE_MAG_FILTER)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 
+      // Defines texture parameters (TEXTURE_MIN_FILTER)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 
+      // Generates texture copies
       gl.generateMipmap(gl.TEXTURE_2D);
 
       gl.bindTexture(gl.TEXTURE_2D, null)
