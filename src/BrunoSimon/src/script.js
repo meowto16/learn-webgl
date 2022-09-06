@@ -1,3 +1,6 @@
+import './style.css'
+import * as THREE from 'three'
+
 const FOV = 75
 const WIDTH_SIZE = 800
 const HEIGHT_SIZE = 600
